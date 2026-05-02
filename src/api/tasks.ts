@@ -4,10 +4,9 @@ const BASE = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:8000';
 const TOKEN = import.meta.env.VITE_API_TOKEN ?? '';
 
 function authHeaders() {
-  return {
-    'Content-Type': 'application/json',
-    Authorization: `Bearer ${TOKEN}`,
-  };
+  const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+  if (TOKEN) headers['Authorization'] = `Bearer ${TOKEN}`;
+  return headers;
 }
 
 async function handleResponse<T>(res: Response): Promise<T> {

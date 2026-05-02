@@ -1,0 +1,8 @@
+name = "voice-memo-proxy"
+main = "src/index.js"
+compatibility_date = "2024-01-01"
+
+[vars]
+BACKEND_URL = "https://fastapi.rocky-ha.com"
+# API_TOKEN は以下のコマンドで秘密として登録する（このファイルには書かない）
+# npx wrangler secret put API_TOKEN
