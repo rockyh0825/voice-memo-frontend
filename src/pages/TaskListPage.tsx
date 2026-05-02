@@ -70,6 +70,7 @@ export default function TaskListPage() {
               onUpdated={(updated) =>
                 setTasks((prev) => prev.map((t) => (t.id === updated.id ? updated : t)))
               }
+              onDeleted={(id) => setTasks((prev) => prev.filter((t) => t.id !== id))}
               onTap={() => setEditingTask(task)}
             />
           ))}
