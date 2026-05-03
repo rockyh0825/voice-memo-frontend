@@ -76,27 +76,28 @@ export default function EditModal({ task, onClose, onSaved, onDeleted }: Props) 
             />
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-slate-600 mb-1">優先度</label>
-            <select
-              className="w-full border border-slate-200 rounded-lg px-3 py-2 text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-400"
-              value={priority}
-              onChange={(e) => setPriority(Number(e.target.value) as Priority)}
-            >
-              {([1, 2, 3, 4] as Priority[]).map((p) => (
-                <option key={p} value={p}>{PRIORITY_LABEL[p]}</option>
-              ))}
-            </select>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-slate-600 mb-1">期日</label>
-            <input
-              type="date"
-              className="w-full border border-slate-200 rounded-lg px-3 py-2 text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-400"
-              value={dueDate}
-              onChange={(e) => setDueDate(e.target.value)}
-            />
+          <div className="flex gap-3">
+            <div className="flex-1 min-w-0">
+              <label className="block text-sm font-medium text-slate-600 mb-1">優先度</label>
+              <select
+                className="w-full border border-slate-200 rounded-lg px-3 py-2 text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-400"
+                value={priority}
+                onChange={(e) => setPriority(Number(e.target.value) as Priority)}
+              >
+                {([1, 2, 3, 4] as Priority[]).map((p) => (
+                  <option key={p} value={p}>{PRIORITY_LABEL[p]}</option>
+                ))}
+              </select>
+            </div>
+            <div className="flex-1 min-w-0">
+              <label className="block text-sm font-medium text-slate-600 mb-1">期日</label>
+              <input
+                type="date"
+                className="w-full appearance-none border border-slate-200 rounded-lg px-3 py-2 text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-400"
+                value={dueDate}
+                onChange={(e) => setDueDate(e.target.value)}
+              />
+            </div>
           </div>
         </div>
 
