@@ -1,18 +1,18 @@
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import type { Task } from '../types';
 import { fetchTasks } from '../api/tasks';
 import TaskItem from '../components/TaskItem';
 import EditModal from '../components/EditModal';
+import AddTaskModal from '../components/AddTaskModal';
 
 type Tab = 'todo' | 'done';
 
 export default function TaskListPage() {
-  const navigate = useNavigate();
   const [tasks, setTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState(true);
   const [tab, setTab] = useState<Tab>('todo');
   const [editingTask, setEditingTask] = useState<Task | null>(null);
+  const [showAddModal, setShowAddModal] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -79,11 +79,21 @@ export default function TaskListPage() {
 
       {/* FAB */}
       <button
-        onClick={() => navigate('/voice')}
+        onClick={() => setShowAddModal(true)}
         className="fixed bottom-8 right-6 w-14 h-14 bg-indigo-500 text-white rounded-full shadow-lg flex items-center justify-center text-2xl"
       >
-        🎤
+        ＋
       </button>
+
+      {showAddModal && (
+        <AddTaskModal
+          onClose={() => setShowAddModal(false)}
+          onAdded={(task) => {
+            setTasks((prev) => [...prev, task]);
+            setShowAddModal(false);
+          }}
+        />
+      )}
 
       {editingTask && (
         <EditModal

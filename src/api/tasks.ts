@@ -1,4 +1,4 @@
-import type { Task, Status } from '../types';
+import type { Task, Status, Priority } from '../types';
 
 const BASE = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:8000';
 const TOKEN = import.meta.env.VITE_API_TOKEN ?? '';
@@ -41,11 +41,16 @@ export async function deleteTask(id: string): Promise<void> {
   return handleResponse<void>(res);
 }
 
-export async function extractTasks(text: string): Promise<{ tasks: Task[] }> {
-  const res = await fetch(`${BASE}/extract-tasks`, {
+export async function createTask(data: {
+  title: string;
+  body: string | null;
+  priority: Priority;
+  due_date: string | null;
+}): Promise<Task> {
+  const res = await fetch(`${BASE}/tasks`, {
     method: 'POST',
     headers: authHeaders(),
-    body: JSON.stringify({ text }),
+    body: JSON.stringify({ ...data, status: 'todo' }),
   });
-  return handleResponse<{ tasks: Task[] }>(res);
+  return handleResponse<Task>(res);
 }
