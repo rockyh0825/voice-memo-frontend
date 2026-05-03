@@ -66,13 +66,13 @@ export default function TaskListPage() {
       {/* FAB */}
       <button
         onClick={() => setShowAddModal(true)}
-        className="fixed bottom-20 right-6 w-14 h-14 bg-indigo-500 text-white rounded-full shadow-lg flex items-center justify-center text-2xl"
+        className="fixed bottom-28 right-6 w-14 h-14 bg-indigo-500 text-white rounded-full shadow-lg flex items-center justify-center text-2xl"
       >
         ＋
       </button>
 
       {/* タブ切り替え（下固定バー） */}
-      <div className="fixed bottom-0 left-0 right-0 px-4 py-3 bg-slate-50 border-t border-slate-200">
+      <div className="fixed bottom-0 left-0 right-0 px-4 pt-3 pb-8 bg-slate-50 border-t border-slate-200">
         <div className="flex gap-1 bg-slate-200 rounded-xl p-1">
           {(['todo', 'done'] as Tab[]).map((t) => (
             <button
