@@ -30,23 +30,9 @@ export default function TaskListPage() {
   const doneCount = tasks.filter((t) => t.status === 'done').length;
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col pb-24">
+    <div className="min-h-screen bg-slate-50 flex flex-col pb-32">
       <header className="px-6 pt-12 pb-4 bg-slate-50 sticky top-0 z-10">
         <h1 className="text-2xl font-bold text-slate-800">タスク</h1>
-
-        <div className="flex gap-1 mt-4 bg-slate-200 rounded-xl p-1">
-          {(['todo', 'done'] as Tab[]).map((t) => (
-            <button
-              key={t}
-              onClick={() => setTab(t)}
-              className={`flex-1 py-2 rounded-lg text-sm font-medium transition-colors ${
-                tab === t ? 'bg-white text-slate-800 shadow-sm' : 'text-slate-500'
-              }`}
-            >
-              {t === 'todo' ? `未完了 ${todoCount}` : `完了 ${doneCount}`}
-            </button>
-          ))}
-        </div>
       </header>
 
       <main className="flex-1 px-4 py-2">
@@ -80,10 +66,27 @@ export default function TaskListPage() {
       {/* FAB */}
       <button
         onClick={() => setShowAddModal(true)}
-        className="fixed bottom-8 right-6 w-14 h-14 bg-indigo-500 text-white rounded-full shadow-lg flex items-center justify-center text-2xl"
+        className="fixed bottom-20 right-6 w-14 h-14 bg-indigo-500 text-white rounded-full shadow-lg flex items-center justify-center text-2xl"
       >
         ＋
       </button>
+
+      {/* タブ切り替え（下固定バー） */}
+      <div className="fixed bottom-0 left-0 right-0 px-4 py-3 bg-slate-50 border-t border-slate-200">
+        <div className="flex gap-1 bg-slate-200 rounded-xl p-1">
+          {(['todo', 'done'] as Tab[]).map((t) => (
+            <button
+              key={t}
+              onClick={() => setTab(t)}
+              className={`flex-1 py-2 rounded-lg text-sm font-medium transition-colors ${
+                tab === t ? 'bg-white text-slate-800 shadow-sm' : 'text-slate-500'
+              }`}
+            >
+              {t === 'todo' ? `未完了 ${todoCount}` : `完了 ${doneCount}`}
+            </button>
+          ))}
+        </div>
+      </div>
 
       {showAddModal && (
         <AddTaskModal
