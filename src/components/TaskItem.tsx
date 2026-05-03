@@ -1,5 +1,4 @@
-import { useState } from 'react';
-import { useSwipeable } from 'react-swipeable';
+import { useRef, useState } from 'react';
 import type { Task } from '../types';
 import { PRIORITY_LABEL, PRIORITY_COLOR } from '../types';
 import { updateTask, deleteTask } from '../api/tasks';
@@ -12,11 +11,14 @@ interface Props {
 }
 
 const SWIPE_THRESHOLD = 80;
+const SWIPE_ZONE = 0.6; // 右40%からのタッチのみ横スワイプ有効
 
 export default function TaskItem({ task, onUpdated, onDeleted, onTap }: Props) {
   const done = task.status === 'done';
   const [dragX, setDragX] = useState(0);
   const [exiting, setExiting] = useState(false);
+  const touchStartX = useRef(0);
+  const swipeActive = useRef(false);
 
   async function toggleDone() {
     const updated = await updateTask(task.id, {
@@ -34,21 +36,25 @@ export default function TaskItem({ task, onUpdated, onDeleted, onTap }: Props) {
     }, 250);
   }
 
-  const handlers = useSwipeable({
-    onSwiping: ({ deltaX }) => {
-      if (!exiting && deltaX < 0) setDragX(deltaX);
-    },
-    onSwipedLeft: ({ absX }) => {
-      if (absX >= SWIPE_THRESHOLD) handleDelete();
-      else setDragX(0);
-    },
-    onTouchEndOrOnMouseUp: () => {
-      if (!exiting && dragX > -SWIPE_THRESHOLD) setDragX(0);
-    },
-    trackMouse: true,
-    delta: 5,
-    preventScrollOnSwipe: true,
-  });
+  function onTouchStart(e: React.TouchEvent<HTMLDivElement>) {
+    const rect = e.currentTarget.getBoundingClientRect();
+    const relX = e.touches[0].clientX - rect.left;
+    swipeActive.current = !exiting && relX / rect.width > SWIPE_ZONE;
+    touchStartX.current = e.touches[0].clientX;
+  }
+
+  function onTouchMove(e: React.TouchEvent) {
+    if (!swipeActive.current) return;
+    const deltaX = e.touches[0].clientX - touchStartX.current;
+    if (deltaX < 0) setDragX(deltaX);
+  }
+
+  function onTouchEnd() {
+    if (!swipeActive.current) return;
+    swipeActive.current = false;
+    if (-dragX >= SWIPE_THRESHOLD) handleDelete();
+    else setDragX(0);
+  }
 
   const deleteOpacity = Math.min(Math.max(-dragX / SWIPE_THRESHOLD, 0), 1);
 
@@ -64,7 +70,9 @@ export default function TaskItem({ task, onUpdated, onDeleted, onTap }: Props) {
 
       {/* カード本体 */}
       <div
-        {...handlers}
+        onTouchStart={onTouchStart}
+        onTouchMove={onTouchMove}
+        onTouchEnd={onTouchEnd}
         className="relative flex items-start gap-3 bg-white px-4 py-3 shadow-sm"
         style={{
           transform: `translateX(${dragX}px)`,
