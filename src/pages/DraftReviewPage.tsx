@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import type { Task } from '../types';
 import { fetchTasks, updateTask, deleteTask } from '../api/tasks';
 import DraftCard from '../components/DraftCard';
@@ -7,12 +7,19 @@ import EditModal from '../components/EditModal';
 
 export default function DraftReviewPage() {
   const navigate = useNavigate();
+  const location = useLocation();
   const [drafts, setDrafts] = useState<Task[]>([]);
   const [loading, setLoading] = useState(true);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    const passed = (location.state as { drafts?: Task[] } | null)?.drafts;
+    if (passed && passed.length > 0) {
+      setDrafts(passed);
+      setLoading(false);
+      return;
+    }
     fetchTasks('draft')
       .then((tasks) => {
         if (tasks.length === 0) navigate('/tasks', { replace: true });

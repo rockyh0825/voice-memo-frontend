@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type { Task } from '../types';
 import { fetchTasks } from '../api/tasks';
 import TaskItem from '../components/TaskItem';
@@ -8,26 +8,38 @@ import AddTaskModal from '../components/AddTaskModal';
 type Tab = 'todo' | 'done';
 
 export default function TaskListPage() {
-  const [tasks, setTasks] = useState<Task[]>([]);
+  const [todoTasks, setTodoTasks] = useState<Task[]>([]);
+  const [doneTasks, setDoneTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState(true);
+  const [doneLoading, setDoneLoading] = useState(false);
+  const doneLoaded = useRef(false);
   const [tab, setTab] = useState<Tab>('todo');
   const [editingTask, setEditingTask] = useState<Task | null>(null);
   const [showAddModal, setShowAddModal] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    fetchTasks()
-      .then((all) => setTasks(all.filter((t) => t.status !== 'draft')))
+    fetchTasks('todo')
+      .then(setTodoTasks)
       .catch((e) => setError(e.message))
       .finally(() => setLoading(false));
   }, []);
 
-  const filtered = tasks
-    .filter((t) => t.status === tab)
+  useEffect(() => {
+    if (tab !== 'done' || doneLoaded.current) return;
+    doneLoaded.current = true;
+    setDoneLoading(true);
+    fetchTasks('done')
+      .then(setDoneTasks)
+      .catch((e) => setError(e.message))
+      .finally(() => setDoneLoading(false));
+  }, [tab]);
+
+  const filtered = (tab === 'todo' ? todoTasks : doneTasks)
     .sort((a, b) => a.priority - b.priority);
 
-  const todoCount = tasks.filter((t) => t.status === 'todo').length;
-  const doneCount = tasks.filter((t) => t.status === 'done').length;
+  const todoCount = todoTasks.length;
+  const doneCount = doneLoaded.current ? doneTasks.length : null;
 
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col pb-32">
@@ -36,13 +48,13 @@ export default function TaskListPage() {
       </header>
 
       <main className="flex-1 px-4 py-2">
-        {loading && (
+        {(loading || doneLoading) && (
           <p className="text-center text-slate-400 mt-12">読み込み中...</p>
         )}
         {error && (
           <p className="text-center text-rose-500 mt-12">{error}</p>
         )}
-        {!loading && !error && filtered.length === 0 && (
+        {!loading && !doneLoading && !error && filtered.length === 0 && (
           <div className="text-center text-slate-400 mt-16">
             <p className="text-4xl mb-3">{tab === 'todo' ? '🎉' : '📋'}</p>
             <p>{tab === 'todo' ? 'タスクはありません' : 'まだ完了したタスクはありません'}</p>
@@ -53,10 +65,22 @@ export default function TaskListPage() {
             <TaskItem
               key={task.id}
               task={task}
-              onUpdated={(updated) =>
-                setTasks((prev) => prev.map((t) => (t.id === updated.id ? updated : t)))
-              }
-              onDeleted={(id) => setTasks((prev) => prev.filter((t) => t.id !== id))}
+              onUpdated={(updated) => {
+                if (updated.status === 'todo') {
+                  setTodoTasks((prev) => prev.map((t) => t.id === updated.id ? updated : t).filter((t) => t.status === 'todo'));
+                  setDoneTasks((prev) => prev.filter((t) => t.id !== updated.id));
+                } else {
+                  setDoneTasks((prev) => {
+                    const exists = prev.some((t) => t.id === updated.id);
+                    return exists ? prev.map((t) => t.id === updated.id ? updated : t) : [...prev, updated];
+                  });
+                  setTodoTasks((prev) => prev.filter((t) => t.id !== updated.id));
+                }
+              }}
+              onDeleted={(id) => {
+                setTodoTasks((prev) => prev.filter((t) => t.id !== id));
+                setDoneTasks((prev) => prev.filter((t) => t.id !== id));
+              }}
               onTap={() => setEditingTask(task)}
             />
           ))}
@@ -82,7 +106,7 @@ export default function TaskListPage() {
                 tab === t ? 'bg-white text-slate-800 shadow-sm' : 'text-slate-500'
               }`}
             >
-              {t === 'todo' ? `未完了 ${todoCount}` : `完了 ${doneCount}`}
+              {t === 'todo' ? `未完了 ${todoCount}` : `完了 ${doneCount ?? '?'}`}
             </button>
           ))}
         </div>
@@ -92,7 +116,7 @@ export default function TaskListPage() {
         <AddTaskModal
           onClose={() => setShowAddModal(false)}
           onAdded={(task) => {
-            setTasks((prev) => [...prev, task]);
+            setTodoTasks((prev) => [...prev, task]);
             setShowAddModal(false);
           }}
         />
@@ -103,11 +127,21 @@ export default function TaskListPage() {
           task={editingTask}
           onClose={() => setEditingTask(null)}
           onSaved={(updated) => {
-            setTasks((prev) => prev.map((t) => (t.id === updated.id ? updated : t)));
+            if (updated.status === 'todo') {
+              setTodoTasks((prev) => prev.map((t) => t.id === updated.id ? updated : t).filter((t) => t.status === 'todo'));
+              setDoneTasks((prev) => prev.filter((t) => t.id !== updated.id));
+            } else {
+              setDoneTasks((prev) => {
+                const exists = prev.some((t) => t.id === updated.id);
+                return exists ? prev.map((t) => t.id === updated.id ? updated : t) : [...prev, updated];
+              });
+              setTodoTasks((prev) => prev.filter((t) => t.id !== updated.id));
+            }
             setEditingTask(null);
           }}
           onDeleted={(id) => {
-            setTasks((prev) => prev.filter((t) => t.id !== id));
+            setTodoTasks((prev) => prev.filter((t) => t.id !== id));
+            setDoneTasks((prev) => prev.filter((t) => t.id !== id));
             setEditingTask(null);
           }}
         />
