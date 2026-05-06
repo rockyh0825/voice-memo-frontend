@@ -10,7 +10,9 @@ function InitialRedirect() {
 
   useEffect(() => {
     fetchTasks('draft')
-      .then((drafts) => navigate(drafts.length > 0 ? '/draft' : '/tasks', { replace: true }))
+      .then((drafts) =>
+        navigate(drafts.length > 0 ? '/draft' : '/tasks', { replace: true, state: drafts.length > 0 ? { drafts } : undefined })
+      )
       .catch(() => navigate('/tasks', { replace: true }))
       .finally(() => setChecking(false));
   }, [navigate]);
