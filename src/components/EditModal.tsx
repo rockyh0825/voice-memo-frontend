@@ -102,7 +102,7 @@ export default function EditModal({ task, onClose, onSaved, onDeleted }: Props) 
                   <button
                     type="button"
                     onClick={() => setDueDate('')}
-                    className="text-slate-400 hover:text-slate-600 px-2 py-2 text-xl leading-none"
+                    className="flex items-center justify-center w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 text-base shrink-0"
                   >
                     ×
                   </button>
