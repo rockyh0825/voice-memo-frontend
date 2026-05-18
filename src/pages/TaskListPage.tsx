@@ -4,8 +4,9 @@ import { fetchTasks } from '../api/tasks';
 import TaskItem from '../components/TaskItem';
 import EditModal from '../components/EditModal';
 import AddTaskModal from '../components/AddTaskModal';
+import CalendarView from '../components/CalendarView';
 
-type Tab = 'todo' | 'done';
+type Tab = 'todo' | 'done' | 'calendar';
 
 export default function TaskListPage() {
   const [todoTasks, setTodoTasks] = useState<Task[]>([]);
@@ -48,67 +49,88 @@ export default function TaskListPage() {
       </header>
 
       <main className="flex-1 px-4 py-2">
-        {(loading || doneLoading) && (
-          <p className="text-center text-slate-400 mt-12">読み込み中...</p>
+        {tab === 'calendar' ? (
+          <CalendarView />
+        ) : (
+          <>
+            {(loading || doneLoading) && (
+              <p className="text-center text-slate-400 mt-12">読み込み中...</p>
+            )}
+            {error && (
+              <p className="text-center text-rose-500 mt-12">{error}</p>
+            )}
+            {!loading && !doneLoading && !error && filtered.length === 0 && (
+              <div className="text-center text-slate-400 mt-16">
+                <p className="text-4xl mb-3">{tab === 'todo' ? '🎉' : '📋'}</p>
+                <p>{tab === 'todo' ? 'タスクはありません' : '直近で完了したタスクはありません'}</p>
+              </div>
+            )}
+            <div className="space-y-2">
+              {filtered.map((task) => (
+                <TaskItem
+                  key={task.id}
+                  task={task}
+                  onUpdated={(updated) => {
+                    if (updated.status === 'todo') {
+                      setTodoTasks((prev) => prev.map((t) => t.id === updated.id ? updated : t).filter((t) => t.status === 'todo'));
+                      setDoneTasks((prev) => prev.filter((t) => t.id !== updated.id));
+                    } else {
+                      setDoneTasks((prev) => {
+                        const exists = prev.some((t) => t.id === updated.id);
+                        return exists ? prev.map((t) => t.id === updated.id ? updated : t) : [...prev, updated];
+                      });
+                      setTodoTasks((prev) => prev.filter((t) => t.id !== updated.id));
+                    }
+                  }}
+                  onDeleted={(id) => {
+                    setTodoTasks((prev) => prev.filter((t) => t.id !== id));
+                    setDoneTasks((prev) => prev.filter((t) => t.id !== id));
+                  }}
+                  onTap={() => setEditingTask(task)}
+                />
+              ))}
+            </div>
+          </>
         )}
-        {error && (
-          <p className="text-center text-rose-500 mt-12">{error}</p>
-        )}
-        {!loading && !doneLoading && !error && filtered.length === 0 && (
-          <div className="text-center text-slate-400 mt-16">
-            <p className="text-4xl mb-3">{tab === 'todo' ? '🎉' : '📋'}</p>
-            <p>{tab === 'todo' ? 'タスクはありません' : '直近で完了したタスクはありません'}</p>
-          </div>
-        )}
-        <div className="space-y-2">
-          {filtered.map((task) => (
-            <TaskItem
-              key={task.id}
-              task={task}
-              onUpdated={(updated) => {
-                if (updated.status === 'todo') {
-                  setTodoTasks((prev) => prev.map((t) => t.id === updated.id ? updated : t).filter((t) => t.status === 'todo'));
-                  setDoneTasks((prev) => prev.filter((t) => t.id !== updated.id));
-                } else {
-                  setDoneTasks((prev) => {
-                    const exists = prev.some((t) => t.id === updated.id);
-                    return exists ? prev.map((t) => t.id === updated.id ? updated : t) : [...prev, updated];
-                  });
-                  setTodoTasks((prev) => prev.filter((t) => t.id !== updated.id));
-                }
-              }}
-              onDeleted={(id) => {
-                setTodoTasks((prev) => prev.filter((t) => t.id !== id));
-                setDoneTasks((prev) => prev.filter((t) => t.id !== id));
-              }}
-              onTap={() => setEditingTask(task)}
-            />
-          ))}
-        </div>
       </main>
 
       {/* FAB */}
-      <button
-        onClick={() => setShowAddModal(true)}
-        className="fixed bottom-28 right-6 w-14 h-14 bg-indigo-500 text-white rounded-full shadow-lg flex items-center justify-center text-2xl"
-      >
-        ＋
-      </button>
+      {tab !== 'calendar' && (
+        <button
+          onClick={() => setShowAddModal(true)}
+          className="fixed bottom-28 right-6 w-14 h-14 bg-indigo-500 text-white rounded-full shadow-lg flex items-center justify-center text-2xl"
+        >
+          ＋
+        </button>
+      )}
 
       {/* タブ切り替え（下固定バー） */}
       <div className="fixed bottom-0 left-0 right-0 px-4 pt-3 pb-8 bg-slate-50 border-t border-slate-200">
         <div className="flex gap-1 bg-slate-200 rounded-xl p-1">
-          {(['todo', 'done'] as Tab[]).map((t) => (
-            <button
-              key={t}
-              onClick={() => setTab(t)}
-              className={`flex-1 py-2 rounded-lg text-sm font-medium transition-colors ${
-                tab === t ? 'bg-white text-slate-800 shadow-sm' : 'text-slate-500'
-              }`}
-            >
-              {t === 'todo' ? `未完了 ${todoCount}` : `完了 ${doneCount ?? '?'}`}
-            </button>
-          ))}
+          <button
+            onClick={() => setTab('todo')}
+            className={`flex-1 py-2 rounded-lg text-sm font-medium transition-colors ${
+              tab === 'todo' ? 'bg-white text-slate-800 shadow-sm' : 'text-slate-500'
+            }`}
+          >
+            未完了 {todoCount}
+          </button>
+          <button
+            onClick={() => setTab('done')}
+            className={`flex-1 py-2 rounded-lg text-sm font-medium transition-colors ${
+              tab === 'done' ? 'bg-white text-slate-800 shadow-sm' : 'text-slate-500'
+            }`}
+          >
+            完了 {doneCount ?? '?'}
+          </button>
+          <button
+            onClick={() => setTab('calendar')}
+            className={`flex-1 py-2 rounded-lg text-sm font-medium transition-colors ${
+              tab === 'calendar' ? 'bg-white text-slate-800 shadow-sm' : 'text-slate-500'
+            }`}
+          >
+            📅
+          </button>
         </div>
       </div>
 

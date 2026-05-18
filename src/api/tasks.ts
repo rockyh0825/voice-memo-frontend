@@ -41,6 +41,12 @@ export async function deleteTask(id: string): Promise<void> {
   return handleResponse<void>(res);
 }
 
+export async function fetchDoneTasksByMonth(year: number, month: number): Promise<Task[]> {
+  const url = `${BASE}/tasks?status=done&year=${year}&month=${month}`;
+  const res = await fetch(url, { headers: authHeaders() });
+  return handleResponse<Task[]>(res);
+}
+
 export async function createTask(data: {
   title: string;
   body: string | null;

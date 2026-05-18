@@ -9,6 +9,7 @@ export interface Task {
   due_date: string | null;
   status: Status;
   source: string;
+  completed_at?: string | null;
 }
 
 export const PRIORITY_LABEL: Record<Priority, string> = {
