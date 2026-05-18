@@ -9,7 +9,8 @@
     "lint": "eslint .",
     "preview": "vite preview",
     "test:e2e": "playwright test",
-    "test:e2e:ui": "playwright test --ui"
+    "test:e2e:ui": "playwright test --ui",
+    "generate": "openapi-typescript ../voice-memo/openapi.yaml -o src/api/schema.gen.ts"
   },
   "dependencies": {
     "react": "^19.2.5",
@@ -29,11 +30,18 @@
     "eslint-plugin-react-hooks": "^7.1.1",
     "eslint-plugin-react-refresh": "^0.5.2",
     "globals": "^17.5.0",
+    "msw": "^2.14.6",
+    "openapi-typescript": "^7.13.0",
     "tailwindcss": "^4.2.4",
     "typescript": "~6.0.2",
     "typescript-eslint": "^8.58.2",
     "vite": "^8.0.10",
     "vite-plugin-pwa": "^1.2.0",
     "workbox-window": "^7.4.0"
+  },
+  "msw": {
+    "workerDirectory": [
+      "public"
+    ]
   }
 }

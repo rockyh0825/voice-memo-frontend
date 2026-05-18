@@ -1,15 +1,15 @@
+import type { components } from './api/schema.gen';
+
 export type Priority = 1 | 2 | 3 | 4;
 export type Status = 'draft' | 'todo' | 'done';
 
-export interface Task {
-  id: string;
-  title: string;
-  body: string | null;
+// スキーマ由来の型に UI で扱いやすい priority/status の厳密な型を適用
+export type Task = Omit<components['schemas']['TaskOut'], 'priority' | 'status'> & {
   priority: Priority;
-  due_date: string | null;
   status: Status;
-  source: string;
-}
+};
+
+export type TaskUpdateRequest = components['schemas']['TaskUpdateRequest'];
 
 export const PRIORITY_LABEL: Record<Priority, string> = {
   1: '緊急',

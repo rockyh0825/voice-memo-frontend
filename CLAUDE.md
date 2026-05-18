@@ -17,6 +17,9 @@ npm run build
 
 # 型チェック
 npx tsc --noEmit
+
+# バックエンドの openapi.yaml から TypeScript 型を再生成
+npm run generate
 ```
 
 ## Tech stack
@@ -35,14 +38,18 @@ src/
   types.ts              Task 型、Priority/Status 型、ラベル/カラー定数
   pages/
     DraftReviewPage.tsx  draft タスクのカード確認画面
-    TaskListPage.tsx     todo/done タブのタスク一覧
+    TaskListPage.tsx     未完了/完了/カレンダー タブのタスク一覧
     VoiceInputPage.tsx   Web Speech API + テキスト入力
   components/
     DraftCard.tsx        スワイプジェスチャーカード（react-swipeable）
     TaskItem.tsx         チェックボックス付きリスト項目
     EditModal.tsx        タスク編集ボトムシートモーダル
+    CalendarView.tsx     月カレンダー（完了タスクを日付ごとに表示）
+  mocks/
+    browser.ts           MSW ブラウザワーカーのセットアップ
+    handlers.ts          MSW リクエストハンドラー（モックデータ）
   App.tsx               ルーター定義 + 初期リダイレクト
-  main.tsx
+  main.tsx              dev 時に MSW を起動してからアプリをマウント
   index.css             Tailwind v4 エントリ（@import "tailwindcss"）
 ```
 
@@ -74,11 +81,14 @@ src/
 
 **モーダル:** `EditModal` はオーバーレイクリックで閉じる（`e.target === e.currentTarget` チェック）。バックエンド PATCH 成功後に親の tasks state を更新して再レンダリング。
 
+## 開発用モック（MSW）
+
+`npm run dev` 時は MSW（Mock Service Worker）が自動的に起動し、バックエンドなしで UI を確認できる。ブラウザコンソールに `[MSW] モック有効` と表示されていればモックが有効。
+
+モックデータは `src/mocks/handlers.ts` に定義。バックエンドの API を変更したら `handlers.ts` も合わせて更新すること。
+
+本番ビルドには MSW は含まれない（`import.meta.env.DEV` で分岐）。
+
 ## バックエンド連携
 
-バックエンド (`../voice-memo`) に以下の追加が必要（未実装）:
-- `GET /tasks?status=...` — タスク一覧
-- `PATCH /tasks/{id}` — タスク更新
-- `DELETE /tasks/{id}` — タスク削除
-
-また、CORS ミドルウェアの追加も必要（フロントのオリジンを `allow_origins` に追加）。
+バックエンド (`../voice-memo`) の API 仕様は `../voice-memo/openapi.yaml` を参照。
