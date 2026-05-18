@@ -1,4 +1,4 @@
-import type { Task, Status, Priority } from '../types';
+import type { Task, TaskUpdateRequest, Status, Priority } from '../types';
 
 const BASE = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:8000';
 const TOKEN = import.meta.env.VITE_API_TOKEN ?? '';
@@ -24,7 +24,7 @@ export async function fetchTasks(status?: Status): Promise<Task[]> {
   return handleResponse<Task[]>(res);
 }
 
-export async function updateTask(id: string, data: Partial<Omit<Task, 'id' | 'source'>>): Promise<Task> {
+export async function updateTask(id: string, data: TaskUpdateRequest): Promise<Task> {
   const res = await fetch(`${BASE}/tasks/${id}`, {
     method: 'PATCH',
     headers: authHeaders(),

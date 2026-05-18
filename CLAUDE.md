@@ -17,6 +17,9 @@ npm run build
 
 # 型チェック
 npx tsc --noEmit
+
+# バックエンドの openapi.yaml から TypeScript 型を再生成
+npm run generate
 ```
 
 ## Tech stack
