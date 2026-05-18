@@ -57,7 +57,7 @@ export default function TaskListPage() {
         {!loading && !doneLoading && !error && filtered.length === 0 && (
           <div className="text-center text-slate-400 mt-16">
             <p className="text-4xl mb-3">{tab === 'todo' ? '🎉' : '📋'}</p>
-            <p>{tab === 'todo' ? 'タスクはありません' : 'まだ完了したタスクはありません'}</p>
+            <p>{tab === 'todo' ? 'タスクはありません' : '直近で完了したタスクはありません'}</p>
           </div>
         )}
         <div className="space-y-2">
