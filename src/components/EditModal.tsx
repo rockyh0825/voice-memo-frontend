@@ -91,12 +91,23 @@ export default function EditModal({ task, onClose, onSaved, onDeleted }: Props) 
             </div>
             <div className="flex-1 min-w-0">
               <label className="block text-sm font-medium text-slate-600 mb-1">期日</label>
-              <input
-                type="date"
-                className="w-full appearance-none border border-slate-200 rounded-lg px-3 py-2 text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-400"
-                value={dueDate}
-                onChange={(e) => setDueDate(e.target.value)}
-              />
+              <div className="flex items-center gap-1">
+                <input
+                  type="date"
+                  className="flex-1 min-w-0 appearance-none border border-slate-200 rounded-lg px-3 py-2 text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-400"
+                  value={dueDate}
+                  onChange={(e) => setDueDate(e.target.value)}
+                />
+                {dueDate && (
+                  <button
+                    type="button"
+                    onClick={() => setDueDate('')}
+                    className="text-slate-400 hover:text-slate-600 px-1 py-2 text-lg leading-none"
+                  >
+                    ×
+                  </button>
+                )}
+              </div>
             </div>
           </div>
         </div>
