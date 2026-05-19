@@ -27,6 +27,7 @@ npm run generate
 - **Vite 8** + **React 19** + **TypeScript**
 - **Tailwind CSS v4** — `@tailwindcss/vite` プラグイン経由（`tailwind.config.js` は不要、設定は `src/index.css` の `@theme` で行う）
 - **React Router v6** — BrowserRouter + Routes
+- **@supabase/supabase-js** — 認証（Google OAuth）とセッション管理
 - **react-swipeable** — DraftCard のタッチスワイプジェスチャー
 - **vite-plugin-pwa 1.2.0** — `--legacy-peer-deps` でインストール（vite 8 の peer dep 不一致を回避）
 
@@ -34,38 +35,54 @@ npm run generate
 
 ```
 src/
-  api/tasks.ts          API 呼び出し（fetch + Bearer 認証）
-  types.ts              Task 型、Priority/Status 型、ラベル/カラー定数
+  lib/
+    supabase.ts           Supabase クライアント初期化
+  api/tasks.ts            API 呼び出し（Supabase セッションの JWT を Bearer として使用）
+  types.ts                Task 型、Priority/Status 型、ラベル/カラー定数
   pages/
-    DraftReviewPage.tsx  draft タスクのカード確認画面
-    TaskListPage.tsx     未完了/完了/カレンダー タブのタスク一覧
-    VoiceInputPage.tsx   Web Speech API + テキスト入力
+    LoginPage.tsx         Google ログイン画面（未認証時のみ表示）
+    DraftReviewPage.tsx   draft タスクのカード確認画面
+    TaskListPage.tsx      未完了/完了/カレンダー タブのタスク一覧
+    VoiceInputPage.tsx    Web Speech API + テキスト入力
   components/
-    DraftCard.tsx        スワイプジェスチャーカード（react-swipeable）
-    TaskItem.tsx         チェックボックス付きリスト項目
-    EditModal.tsx        タスク編集ボトムシートモーダル
-    CalendarView.tsx     月カレンダー（完了タスクを日付ごとに表示）
+    ProtectedRoute.tsx    未ログイン時に /login へリダイレクト
+    DraftCard.tsx         スワイプジェスチャーカード（react-swipeable）
+    TaskItem.tsx          チェックボックス付きリスト項目
+    EditModal.tsx         タスク編集ボトムシートモーダル
+    CalendarView.tsx      月カレンダー（完了タスクを日付ごとに表示）
   mocks/
-    browser.ts           MSW ブラウザワーカーのセットアップ
-    handlers.ts          MSW リクエストハンドラー（モックデータ）
-  App.tsx               ルーター定義 + 初期リダイレクト
-  main.tsx              dev 時に MSW を起動してからアプリをマウント
-  index.css             Tailwind v4 エントリ（@import "tailwindcss"）
+    browser.ts            MSW ブラウザワーカーのセットアップ
+    handlers.ts           MSW リクエストハンドラー（モックデータ）
+  App.tsx                 ルーター定義 + 初期リダイレクト（/login は ProtectedRoute 外）
+  main.tsx                dev 時に MSW を起動してからアプリをマウント
+  index.css               Tailwind v4 エントリ（@import "tailwindcss"）
 ```
 
 ## 環境変数
 
-`.env.local` に設定する（`VITE_` プレフィックスが必要）。
+`.env.local` に設定する（`VITE_` プレフィックスが必要）。Cloudflare Pages にも同じ変数を設定する。
 
 | 変数 | 説明 |
 |---|---|
 | `VITE_API_BASE_URL` | バックエンド URL（デフォルト: `http://localhost:8000`） |
-| `VITE_API_TOKEN` | Bearer トークン（バックエンドの `API_TOKEN` と同じ値） |
+| `VITE_SUPABASE_URL` | Supabase プロジェクト URL |
+| `VITE_SUPABASE_ANON_KEY` | Supabase の anon キー（公開可。RLS で保護されている前提） |
+
+`VITE_API_TOKEN` は廃止。API 認証は Supabase Auth のセッション JWT を使用する。
+
+## 認証フロー
+
+```
+未ログイン → /login (LoginPage) → Google OAuth → Supabase → アプリに戻る
+ログイン済み → ProtectedRoute が通過 → 通常の画面フロー
+```
+
+ProtectedRoute はセッション確認中に loading 表示し、セッションなしで /login へリダイレクト。
 
 ## 画面フロー
 
 ```
-/ (InitialRedirect)
+/ (InitialRedirect)  ※ProtectedRoute 内
   ├─ draft あり → /draft (DraftReviewPage)
   │    └─ 全件処理 or 後回し → /tasks
   └─ draft なし → /tasks (TaskListPage)

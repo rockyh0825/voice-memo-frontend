@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import DraftReviewPage from './pages/DraftReviewPage';
 import TaskListPage from './pages/TaskListPage';
+import LoginPage from './pages/LoginPage';
+import ProtectedRoute from './components/ProtectedRoute';
 import { fetchTasks } from './api/tasks';
 
 function InitialRedirect() {
@@ -35,9 +37,10 @@ export default function App() {
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/" element={<InitialRedirect />} />
-        <Route path="/draft" element={<DraftReviewPage />} />
-        <Route path="/tasks" element={<TaskListPage />} />
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/" element={<ProtectedRoute><InitialRedirect /></ProtectedRoute>} />
+        <Route path="/draft" element={<ProtectedRoute><DraftReviewPage /></ProtectedRoute>} />
+        <Route path="/tasks" element={<ProtectedRoute><TaskListPage /></ProtectedRoute>} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </BrowserRouter>
